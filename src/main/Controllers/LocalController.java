@@ -18,6 +18,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import main.Models.Local;
+import main.database.LocalDao;
 
 import java.io.IOException;
 import java.net.URL;
@@ -46,6 +47,9 @@ public class LocalController implements Initializable {
     @FXML private TableColumn<Local, Boolean> columnTD;
     @FXML private TableColumn<Local, Boolean> columnTP;
 
+
+    LocalDao localDao = new LocalDao();
+
     //Liste observable des locaux qui seront affichés dans la tableview
     ObservableList<Local> allLocals = FXCollections.observableArrayList();
 
@@ -61,38 +65,34 @@ public class LocalController implements Initializable {
         local.setTypeTD(checkTD.isSelected());
         local.setTypeTP(checkTP.isSelected());
 
-        //Ajouter à la table
-        tableView.getItems().add(local);
+        //Ajout vers la base de données
 
-        //Affichage dans la console juste pour tester
-        System.out.println(local.getTitre());
-        System.out.println(local.getCapacite());
-        System.out.println(local.isTypeCours());
-        System.out.println(local.isTypeTD());
-        System.out.println(local.isTypeTP());
-
-        //Ajout vers la base de données à faire ultérieurement
-        //addLocal();
+        if (localDao.insertLocalDb(local) > 0){
+            allLocals.add(local);
+        }
     }
 
     //Méthode de suppression d'un local
     public void deleteLocalBtnClicked(){
 
-        ObservableList<Local> localsSelected, allLocals;
+        ObservableList<Local> localsSelected;
 
-        allLocals = tableView.getItems();
         localsSelected = tableView.getSelectionModel().getSelectedItems();
 
-        localsSelected.forEach(allLocals::remove);
+        localsSelected.forEach(local -> {
+                int response = localDao.deleteLocalDb(local.getTitre());
+                if (response > 0){
+                    allLocals.remove(local);
+                }
+        });
     }
 
     //Méthode de modification d'un local
     public void updateLocalBtnClicked(){
-        int position;
-        ObservableList<Local> allLocals;
+
         Local updateLocal = new Local();
-        allLocals = tableView.getItems();
-        position = tableView.getSelectionModel().getSelectedIndex();
+        int position = tableView.getSelectionModel().getSelectedIndex();
+        Local oldLocal = tableView.getItems().get(position);
 
         updateLocal.setTitre(txtTitre.getText());
         updateLocal.setCapacite(Integer.parseInt(txtCapacite.getText()));
@@ -100,17 +100,17 @@ public class LocalController implements Initializable {
         updateLocal.setTypeTD(checkTD.isSelected());
         updateLocal.setTypeTP(checkTP.isSelected());
 
-        allLocals.set(position, updateLocal);
+        if (localDao.updateLocalDb(oldLocal.getTitre(), updateLocal) > 0){
+            allLocals.set(position, updateLocal);
+            System.out.println("Mise à jour réussie");
+        }
+
     }
 
 
     private ObservableList<Local> getAllLocals(){
 
-        allLocals.add(new Local("Haloum", 15, true, false, true));
-        allLocals.add(new Local("L'banane", 30, true, true, true));
-        allLocals.add(new Local("L'kachir", 20, false, false, true));
-        allLocals.add(new Local("Heyhey", 15, true, false, true));
-
+        allLocals = localDao.getAllLocalsDb();
         return allLocals;
     }
 
@@ -185,13 +185,14 @@ public class LocalController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
+        allLocals = getAllLocals();
         columnTitre.setCellValueFactory(new PropertyValueFactory<>("titre"));
         columnCapacite.setCellValueFactory(new PropertyValueFactory<>("capacite"));
         columnCours.setCellValueFactory(new PropertyValueFactory<>("typeCours"));
         columnTD.setCellValueFactory(new PropertyValueFactory<>("typeTD"));
         columnTP.setCellValueFactory(new PropertyValueFactory<>("typeTP"));
 
-        tableView.setItems(getAllLocals());
+        tableView.setItems(allLocals);
         tableView.getColumns().addAll(columnTitre, columnCapacite, columnCours, columnTD, columnTP);
 
         searchLocals();
