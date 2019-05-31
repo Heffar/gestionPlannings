@@ -1,8 +1,9 @@
-package main.database;
+package main.database.DAOs;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import main.Models.Local;
+import main.database.DatabaseHelper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

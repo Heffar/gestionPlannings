@@ -18,7 +18,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import main.Models.Local;
-import main.database.LocalDao;
+import main.database.DAOs.LocalDao;
 
 import java.io.IOException;
 import java.net.URL;
