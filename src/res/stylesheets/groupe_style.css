@@ -1,0 +1,28 @@
+.tab-header-background {
+    -fx-background-color:#FFFFFF;
+    -fx-focus-color: #2a4575;
+    -fx-background-radius: 0 16 0 0;
+}
+
+
+.tab-header {
+    -fx-border-radius: 0 0 16px 0;
+}
+.tab-label {
+    -fx-text-fill: #2a4575;
+    -fx-text-size: 10px;
+}
+
+.tab:selected {
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+}
+
+.jfx-tab-pane .tab-header-area .jfx-rippler{
+    -jfx-rippler-fill:#2a4575;
+}
+
+.jfx-tab-pane .tab-selected-line {
+    -fx-border-color: #2a4575;
+}
+
