@@ -19,6 +19,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import main.Models.Module;
+import main.database.DAOs.ModuleDao;
 
 import java.io.IOException;
 import java.net.URL;
@@ -47,6 +48,7 @@ public class ModuleController implements Initializable {
 
     private ObservableList<Module> allModules = FXCollections.observableArrayList();
 
+    ModuleDao moduleDao = new ModuleDao();
 
     public void addModuleBtnClicked(){
         Module module = new Module();
@@ -58,25 +60,28 @@ public class ModuleController implements Initializable {
         module.setTypeTD(checkTD.isSelected());
         module.setTypeTP(checkTP.isSelected());
 
-        allModules.add(module);
-        tableView.getItems().add(module);
+        if (moduleDao.insertModuleDb(module) > 0){
+            allModules.add(module);
+        }
     }
 
     public void deleteModuleBtnClicked() {
-        ObservableList<Module> modulesSelected, modules;
+        ObservableList<Module> modulesSelected;
         modulesSelected = tableView.getSelectionModel().getSelectedItems();
 
-        modules = tableView.getItems();
+        modulesSelected.forEach(module -> {
+            if (moduleDao.deleteModuleDb(module.getIntitule()) > 0){
+                allModules.remove(module);
+            }
 
-        modulesSelected.forEach(modules::remove);
+        });
     }
 
     public void updateModuleBtnClicked(){
         int position;
-        ObservableList<Module> allLocals;
         Module updateModule = new Module();
-        allLocals = tableView.getItems();
         position = tableView.getSelectionModel().getSelectedIndex();
+        String oldModuleTitre = tableView.getItems().get(position).getIntitule();
 
         updateModule.setIntitule(txtIntitule.getText());
         updateModule.setNiveau(comboNiveau.getSelectionModel().getSelectedItem().toString());
@@ -85,8 +90,9 @@ public class ModuleController implements Initializable {
         updateModule.setTypeTD(checkTD.isSelected());
         updateModule.setTypeTP(checkTP.isSelected());
 
-        allLocals.set(position, updateModule);
-
+        if (moduleDao.updateModuleDb(oldModuleTitre, updateModule) > 0) {
+            allModules.set(position, updateModule);
+        }
     }
 
 
@@ -117,16 +123,9 @@ public class ModuleController implements Initializable {
     }
 
     private ObservableList<Module> getAllModules(){
-        ObservableList modules = FXCollections.observableArrayList();
 
-        modules.add(new Module("Module1", "L3", "GL", true, false, false));
-        modules.add(new Module("Module2", "M1", "ASR", true, true, false));
-        modules.add(new Module("Module3", "L1", "RESYD", true, false, false));
-        modules.add(new Module("Module4", "L2", "USELESS", false, false, false));
-        modules.add(new Module("L'banane", "L2", "USELESS", false, false, false));
-        modules.add(new Module("Haloum", "L2", "USELESS", false, false, false));
-
-        return modules;
+        allModules = moduleDao.getAllModulesDb();
+        return allModules;
     }
 
 
@@ -175,6 +174,8 @@ public class ModuleController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+        allModules = getAllModules();
         columnIntitule.setCellValueFactory(new PropertyValueFactory<>("intitule"));
         columnNiveau.setCellValueFactory(new PropertyValueFactory<>("niveau"));
         columnSpecialite.setCellValueFactory(new PropertyValueFactory<>("specialite"));
@@ -182,7 +183,7 @@ public class ModuleController implements Initializable {
         columnTD.setCellValueFactory(new PropertyValueFactory<>("typeTD"));
         columnTP.setCellValueFactory(new PropertyValueFactory<>("typeTP"));
 
-        tableView.setItems(getAllModules());
+        tableView.setItems(allModules);
         tableView.getColumns().addAll(columnIntitule, columnNiveau, columnSpecialite, columnCours, columnTD, columnTP);
 
         searchModules();
