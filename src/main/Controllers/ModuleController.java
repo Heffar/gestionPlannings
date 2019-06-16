@@ -176,6 +176,7 @@ public class ModuleController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         allModules = getAllModules();
+
         columnIntitule.setCellValueFactory(new PropertyValueFactory<>("intitule"));
         columnNiveau.setCellValueFactory(new PropertyValueFactory<>("niveau"));
         columnSpecialite.setCellValueFactory(new PropertyValueFactory<>("specialite"));

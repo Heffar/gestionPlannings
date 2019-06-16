@@ -2,23 +2,34 @@ package main.Models;
 
 public class Section {
 
-    private String titre, niveau, specialite;
+    private String intitule, niveau;
+    private int id, idSpecialite, capacite;
 
     public Section() {
     }
 
-    public Section(String titre, String niveau, String specialite) {
-        this.titre = titre;
+    public Section(String intitule, String niveau, int id, int idSpecialite, int capacite) {
+        this.intitule = intitule;
         this.niveau = niveau;
-        this.specialite = specialite;
+        this.id = id;
+        this.idSpecialite = idSpecialite;
+        this.capacite = capacite;
     }
 
-    public String getTitre() {
-        return titre;
+    public int getId() {
+        return id;
     }
 
-    public void setTitre(String titre) {
-        this.titre = titre;
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getIntitule() {
+        return intitule;
+    }
+
+    public void setIntitule(String intitule) {
+        this.intitule = intitule;
     }
 
     public String getNiveau() {
@@ -29,11 +40,19 @@ public class Section {
         this.niveau = niveau;
     }
 
-    public String getSpecialite() {
-        return specialite;
+    public int getCapacite() {
+        return capacite;
     }
 
-    public void setSpecialite(String specialite) {
-        this.specialite = specialite;
+    public void setCapacite(int capacite) {
+        this.capacite = capacite;
+    }
+
+    public int getIdSpecialite() {
+        return idSpecialite;
+    }
+
+    public void setIdSpecialite(int idSpecialite) {
+        this.idSpecialite = idSpecialite;
     }
 }
