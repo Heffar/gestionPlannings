@@ -20,6 +20,9 @@ import javafx.stage.Stage;
 import main.Models.Groupe;
 import main.Models.Section;
 import main.Models.Specialite;
+import main.database.DAOs.SectionDao;
+import main.database.DAOs.SpecialiteDao;
+import main.utilities.Data;
 
 import java.io.IOException;
 import java.net.URL;
@@ -30,7 +33,7 @@ public class GroupeController implements Initializable {
 
     //SECTION
     @FXML
-    private JFXTextField txtTitreSection, txtRechercherSection;
+    private JFXTextField txtTitreSection, txtRechercherSection, txtCapaciteSection;
 
     @FXML
     private JFXComboBox comboNiveauSection, comboSpecialiteSection;
@@ -39,9 +42,11 @@ public class GroupeController implements Initializable {
     private TableView<Section> tableSection;
 
     @FXML
-    private TableColumn<Section, String> columnTitreSection, columnNiveauSection, columnSpecialiteSection;
+    private TableColumn<Section, String> columnTitreSection, columnNiveauSection, columnSpecialiteSection, columnCapaciteSection;
 
     ObservableList<Section> allSections = FXCollections.observableArrayList();
+
+    SectionDao sectionDao = new SectionDao();
     /******--------------------------------------------------------------------------------------------------**********/
 
     //SPECIALITE
@@ -50,16 +55,15 @@ public class GroupeController implements Initializable {
     private JFXTextField txtTitreSpecialite, txtCapaciteSpecialite;
 
     @FXML
-    private JFXComboBox comboNiveauSpecialite;
-
-    @FXML
     private TableView<Specialite> tableSpecialite;
 
     @FXML
-    private TableColumn<Specialite, String> columnTitreSpecialite, columnCapaciteSpecialite, columnNiveauSpecialite;
+    private TableColumn<Specialite, String> columnTitreSpecialite, columnCapaciteSpecialite;
 
     ObservableList<Specialite> allSpecialites = FXCollections.observableArrayList();
-/******--------------------------------------------------------------------------------------------------**********/
+
+    SpecialiteDao specialiteDao = new SpecialiteDao();
+    /******--------------------------------------------------------------------------------------------------**********/
 
     //GROUPES
     @FXML
@@ -83,20 +87,19 @@ public class GroupeController implements Initializable {
     private ObservableList<Section> getAllSections(){
         ObservableList sections = allSections;
 
-        sections.add(new Section("A", "M1", "GL"));
-        sections.add(new Section("B", "M1", "GL"));
-        sections.add(new Section("C", "M1", "GL"));
-        sections.add(new Section("A", "L1", "MI"));
+        sections = sectionDao.getAllSections();
+
         return sections;
     }
 
     public void deleteSectionBtnClicked() {
-        ObservableList<Section> sectionsSelected, sections;
+        ObservableList<Section> sectionsSelected;
         sectionsSelected = tableSection.getSelectionModel().getSelectedItems();
 
-        sections = tableSection.getItems();
-
-        sectionsSelected.forEach(sections::remove);
+        sectionsSelected.forEach(section -> {
+            if (sectionDao.deleteSpecialiteDb(section.getId()) > 0)
+                allSections.remove(section);
+        });
     }
 
     public void updateSectionBtnClicked(){
@@ -106,9 +109,9 @@ public class GroupeController implements Initializable {
         allSections = tableSection.getItems();
         position = tableSection.getSelectionModel().getSelectedIndex();
 
-        updateSection.setTitre(txtTitreSection.getText());
+        updateSection.setIntitule(txtTitreSection.getText());
         updateSection.setNiveau(comboNiveauSection.getSelectionModel().getSelectedItem().toString());
-        updateSection.setSpecialite(comboSpecialiteSection.getSelectionModel().getSelectedItem().toString());
+      //  updateSection.setSpecialite(comboSpecialiteSection.getSelectionModel().getSelectedItem().toString());
 
         allSections.set(position, updateSection);
 
@@ -128,7 +131,7 @@ public class GroupeController implements Initializable {
 
                     String lowerCaseFilter = newValue.toLowerCase();
 
-                    if (section.getTitre().toLowerCase().contains(lowerCaseFilter)) {
+                    if (section.getIntitule().toLowerCase().contains(lowerCaseFilter)) {
                         return true;
                     }
 
@@ -144,49 +147,49 @@ public class GroupeController implements Initializable {
     public void addSectionBtnClicked(){
         Section section = new Section();
 
-        section.setTitre(txtTitreSection.getText());
-        section.setSpecialite(comboNiveauSection.getSelectionModel().getSelectedItem().toString());
+        section.setIntitule(txtTitreSection.getText());
         section.setNiveau(comboSpecialiteSection.getSelectionModel().getSelectedItem().toString());
+        section.setCapacite(Integer.parseInt(txtCapaciteSection.getText()));
+        int position = comboSpecialiteSection.getSelectionModel().getSelectedIndex();
+        section.setIdSpecialite(allSpecialites.get(position).getId());
 
-        allSections.add(section);
+        if (sectionDao.addSpecialiteDb(section) > 0)
+            allSections.add(section);
     }
 /******--------------------------------------------------------------------------------------------------------------------**///
     //SPECIALITE
 
     private ObservableList<Specialite> getAllSpecialites(){
-    ObservableList<Specialite> specialites = allSpecialites;
 
-    specialites.add(new Specialite("A", "M1", 15));
-    specialites.add(new Specialite("B", "M1", 20));
-    specialites.add(new Specialite("C", "M1", 30));
-    specialites.add(new Specialite("A", "L1", 60));
-    return specialites;
+    allSpecialites = specialiteDao.getAllSpecialite();
+    return allSpecialites;
 }
 
     public void deleteSpecialiteBtnClicked() {
-        ObservableList<Specialite> specialitesSelected, specialites;
+        ObservableList<Specialite> specialitesSelected;
         specialitesSelected = tableSpecialite.getSelectionModel().getSelectedItems();
 
-        specialites = tableSpecialite.getItems();
-
-        specialitesSelected.forEach(specialites::remove);
+        specialitesSelected.forEach(specialite -> {
+            if (specialiteDao.deleteSpecialiteDb(specialite.getId()) > 0)
+                allSpecialites.remove(specialite);
+        });
     }
 
     public void updateSpecialiteBtnClicked(){
-        int position;
-        ObservableList<Specialite> allSpecialites;
-        Specialite updateSpecialite = new Specialite();
-        allSpecialites = tableSpecialite.getItems();
-        position = tableSpecialite.getSelectionModel().getSelectedIndex();
+        int position, oldId;
 
-        updateSpecialite.setTitre(txtTitreSpecialite.getText());
-        updateSpecialite.setNiveau(comboNiveauSpecialite.getSelectionModel().getSelectedItem().toString());
+        Specialite updateSpecialite = new Specialite();
+        position = tableSpecialite.getSelectionModel().getSelectedIndex();
+        oldId = tableSpecialite.getItems().get(position).getId();
+
+        updateSpecialite.setIntitule(txtTitreSpecialite.getText());
         updateSpecialite.setCapacite(Integer.parseInt(txtCapaciteSpecialite.getText()));
 
-        allSpecialites.set(position, updateSpecialite);
+        if (specialiteDao.updateSpecialiteDb(oldId, updateSpecialite) > 0)
+            allSpecialites.set(position, updateSpecialite);
+
 
     }
-
 
     private void searchSpecialite(){
         //FILTER
@@ -201,7 +204,7 @@ public class GroupeController implements Initializable {
 
                     String lowerCaseFilter = newValue.toLowerCase();
 
-                    if (section.getTitre().toLowerCase().contains(lowerCaseFilter)) {
+                    if (section.getIntitule().toLowerCase().contains(lowerCaseFilter)) {
                         return true;
                     }
 
@@ -217,12 +220,14 @@ public class GroupeController implements Initializable {
     public void addSpecialiteBtnClicked(){
         Specialite specialite = new Specialite();
 
-        specialite.setTitre(txtTitreSpecialite.getText());
-        specialite.setNiveau(comboNiveauSpecialite.getSelectionModel().getSelectedItem().toString());
+        specialite.setIntitule(txtTitreSpecialite.getText());
         specialite.setCapacite(Integer.parseInt(txtCapaciteSpecialite.getText()));
 
-        allSpecialites.add(specialite);
-        tableSpecialite.getItems().add(specialite);
+
+        if (specialiteDao.addSpecialiteDb(specialite) > 0) {
+            allSpecialites.add(specialite);
+        }
+            tableSpecialite.getItems().add(specialite);
     }
 
 
@@ -235,10 +240,6 @@ public class GroupeController implements Initializable {
     private ObservableList<Groupe> getAllGroupes(){
         ObservableList<Groupe> groupes = allGroupes;
 
-        groupes.add(new Groupe("A", "M1", 15));
-        groupes.add(new Groupe("B", "M1", 20));
-        groupes.add(new Groupe("C", "M1", 30));
-        groupes.add(new Groupe("A", "L1", 60));
         return groupes;
     }
 
@@ -258,14 +259,12 @@ public class GroupeController implements Initializable {
         allGroupes = tableGroupe.getItems();
         position = tableGroupe.getSelectionModel().getSelectedIndex();
 
-        updateGroupe.setTitre(txtTitreGroupe.getText());
-        updateGroupe.setNiveau(comboNiveauGroupe.getSelectionModel().getSelectedItem().toString());
+        updateGroupe.setIntitule(txtTitreGroupe.getText());
         updateGroupe.setCapacite(Integer.parseInt(txtCapaciteGroupe.getText()));
 
         allGroupes.set(position, updateGroupe);
 
     }
-
 
     private void searchGroupe(){
         //FILTER
@@ -280,7 +279,7 @@ public class GroupeController implements Initializable {
 
                     String lowerCaseFilter = newValue.toLowerCase();
 
-                    if (section.getTitre().toLowerCase().contains(lowerCaseFilter)) {
+                    if (section.getIntitule().toLowerCase().contains(lowerCaseFilter)) {
                         return true;
                     }
 
@@ -296,8 +295,7 @@ public class GroupeController implements Initializable {
     public void addGroupeBtnClicked(){
         Groupe groupe = new Groupe();
 
-        groupe.setTitre(txtTitreGroupe.getText());
-        groupe.setNiveau(comboNiveauGroupe.getSelectionModel().getSelectedItem().toString());
+        groupe.setIntitule(txtTitreGroupe.getText());
         groupe.setCapacite(Integer.parseInt(txtCapaciteGroupe.getText()));
 
         allGroupes.add(groupe);
@@ -354,41 +352,28 @@ public class GroupeController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         //Sections
-        columnTitreSection.setCellValueFactory(new PropertyValueFactory<>("titre"));
+        columnTitreSection.setCellValueFactory(new PropertyValueFactory<>("intitule"));
         columnSpecialiteSection.setCellValueFactory(new PropertyValueFactory<>("specialite"));
         columnNiveauSection.setCellValueFactory(new PropertyValueFactory<>("niveau"));
+        columnCapaciteSection.setCellValueFactory(new PropertyValueFactory<>("capacite"));
 
-        tableSection.setItems(getAllSections());
+        allSections = getAllSections();
+
+        tableSection.setItems(allSections);
         tableSection.getColumns().addAll(columnTitreSection, columnSpecialiteSection, columnNiveauSection);
 
+        comboNiveauSection.getItems().addAll(Data.getAllNiveaux());
+        //Specialite
 
-        comboSpecialiteSection.getItems().addAll(
-                "Genie Logiciel",
-                "ASR",
-                "IA",
-                "RESYD"
-        );
-
-        comboNiveauSection.getItems().addAll(
-                "L1",
-                "L2",
-                "L3"
-        );
-
-        columnTitreSpecialite.setCellValueFactory(new PropertyValueFactory<>("titre"));
+        allSpecialites = getAllSpecialites();
+        columnTitreSpecialite.setCellValueFactory(new PropertyValueFactory<>("intitule"));
         columnCapaciteSpecialite.setCellValueFactory(new PropertyValueFactory<>("capacite"));
-        columnNiveauSpecialite.setCellValueFactory(new PropertyValueFactory<>("niveau"));
 
-        tableSpecialite.getItems().addAll(getAllSpecialites());
-        tableSpecialite.getColumns().addAll(columnNiveauSpecialite, columnTitreSpecialite, columnCapaciteSpecialite);
+        allSpecialites.forEach(specialite ->
+                comboSpecialiteSection.getItems().add(specialite.getIntitule()));
 
-        comboNiveauSpecialite.getItems().addAll(
-                "L1",
-                "L2",
-                "L3"
-        );
-
-
+        tableSpecialite.setItems(allSpecialites);
+        tableSpecialite.getColumns().addAll(columnTitreSpecialite, columnCapaciteSpecialite);
         /***----------------------------------------------------------------------------------------------------**/
         //GROUPES
 
@@ -396,16 +381,9 @@ public class GroupeController implements Initializable {
         columnCapaciteGroupe.setCellValueFactory(new PropertyValueFactory<>("capacite"));
         columnNiveauGroupe.setCellValueFactory(new PropertyValueFactory<>("niveau"));
 
-
-        tableGroupe.getItems().addAll(getAllGroupes());
+        tableGroupe.getItems().addAll(allGroupes);
         tableGroupe.getColumns().addAll(columnNiveauGroupe, columnTitreGroupe, columnCapaciteGroupe);
 
-
-        comboNiveauGroupe.getItems().addAll(
-                "L1",
-                "L2",
-                "L3"
-        );
-
+        comboNiveauGroupe.getItems().addAll(Data.getAllNiveaux());
     }
 }

@@ -2,15 +2,20 @@ package main.Models;
 
 public class Specialite {
 
-    private String titre, niveau;
-    private int capacite;
+    private String intitule;
+    private int id, capacite;
 
     public Specialite() {
     }
 
-    public Specialite(String titre, String niveau, int capacite) {
-        this.titre = titre;
-        this.niveau = niveau;
+    public Specialite(String intitule, int id, int capacite) {
+        this.intitule = intitule;
+        this.id = id;
+        this.capacite = capacite;
+    }
+
+    public Specialite(String intitule, String niveau, int capacite) {
+        this.intitule = intitule;
         this.capacite = capacite;
     }
 
@@ -22,19 +27,19 @@ public class Specialite {
         return capacite;
     }
 
-    public String getTitre() {
-        return titre;
+    public String getIntitule() {
+        return intitule;
     }
 
-    public void setTitre(String titre) {
-        this.titre = titre;
+    public void setIntitule(String intitule) {
+        this.intitule = intitule;
     }
 
-    public String getNiveau() {
-        return niveau;
+    public int getId() {
+        return id;
     }
 
-    public void setNiveau(String niveau) {
-        this.niveau = niveau;
+    public void setId(int id) {
+        this.id = id;
     }
 }
