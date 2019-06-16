@@ -20,6 +20,8 @@ import javafx.stage.Stage;
 import main.Models.Groupe;
 import main.Models.Section;
 import main.Models.Specialite;
+import main.database.DAOs.SpecialiteDao;
+import main.utilities.Data;
 
 import java.io.IOException;
 import java.net.URL;
@@ -56,10 +58,12 @@ public class GroupeController implements Initializable {
     private TableView<Specialite> tableSpecialite;
 
     @FXML
-    private TableColumn<Specialite, String> columnTitreSpecialite, columnCapaciteSpecialite, columnNiveauSpecialite;
+    private TableColumn<Specialite, String> columnTitreSpecialite, columnCapaciteSpecialite;
 
     ObservableList<Specialite> allSpecialites = FXCollections.observableArrayList();
-/******--------------------------------------------------------------------------------------------------**********/
+
+    SpecialiteDao specialiteDao = new SpecialiteDao();
+    /******--------------------------------------------------------------------------------------------------**********/
 
     //GROUPES
     @FXML
@@ -154,36 +158,34 @@ public class GroupeController implements Initializable {
     //SPECIALITE
 
     private ObservableList<Specialite> getAllSpecialites(){
-    ObservableList<Specialite> specialites = allSpecialites;
 
-    specialites.add(new Specialite("A", "M1", 15));
-    specialites.add(new Specialite("B", "M1", 20));
-    specialites.add(new Specialite("C", "M1", 30));
-    specialites.add(new Specialite("A", "L1", 60));
-    return specialites;
+    allSpecialites = specialiteDao.getAllSpecialite();
+    return allSpecialites;
 }
 
     public void deleteSpecialiteBtnClicked() {
-        ObservableList<Specialite> specialitesSelected, specialites;
+        ObservableList<Specialite> specialitesSelected;
         specialitesSelected = tableSpecialite.getSelectionModel().getSelectedItems();
 
-        specialites = tableSpecialite.getItems();
-
-        specialitesSelected.forEach(specialites::remove);
+        specialitesSelected.forEach(specialite -> {
+            if (specialiteDao.deleteSpecialiteDb(specialite.getId()) > 0)
+                allSpecialites.remove(specialite);
+        });
     }
 
     public void updateSpecialiteBtnClicked(){
-        int position;
-        ObservableList<Specialite> allSpecialites;
-        Specialite updateSpecialite = new Specialite();
-        allSpecialites = tableSpecialite.getItems();
-        position = tableSpecialite.getSelectionModel().getSelectedIndex();
+        int position, oldId;
 
-        updateSpecialite.setTitre(txtTitreSpecialite.getText());
-        updateSpecialite.setNiveau(comboNiveauSpecialite.getSelectionModel().getSelectedItem().toString());
+        Specialite updateSpecialite = new Specialite();
+        position = tableSpecialite.getSelectionModel().getSelectedIndex();
+        oldId = tableSpecialite.getItems().get(position).getId();
+
+        updateSpecialite.setIntitule(txtTitreSpecialite.getText());
         updateSpecialite.setCapacite(Integer.parseInt(txtCapaciteSpecialite.getText()));
 
-        allSpecialites.set(position, updateSpecialite);
+        if (specialiteDao.updateSpecialiteDb(oldId, updateSpecialite) > 0)
+            allSpecialites.set(position, updateSpecialite);
+
 
     }
 
@@ -217,12 +219,14 @@ public class GroupeController implements Initializable {
     public void addSpecialiteBtnClicked(){
         Specialite specialite = new Specialite();
 
-        specialite.setTitre(txtTitreSpecialite.getText());
-        specialite.setNiveau(comboNiveauSpecialite.getSelectionModel().getSelectedItem().toString());
+        specialite.setIntitule(txtTitreSpecialite.getText());
         specialite.setCapacite(Integer.parseInt(txtCapaciteSpecialite.getText()));
 
-        allSpecialites.add(specialite);
-        tableSpecialite.getItems().add(specialite);
+
+        if (specialiteDao.addSpecialiteDb(specialite) > 0) {
+            allSpecialites.add(specialite);
+        }
+            tableSpecialite.getItems().add(specialite);
     }
 
 
@@ -369,24 +373,14 @@ public class GroupeController implements Initializable {
                 "RESYD"
         );
 
-        comboNiveauSection.getItems().addAll(
-                "L1",
-                "L2",
-                "L3"
-        );
+        //Specialite
 
-        columnTitreSpecialite.setCellValueFactory(new PropertyValueFactory<>("titre"));
+        allSpecialites = getAllSpecialites();
+        columnTitreSpecialite.setCellValueFactory(new PropertyValueFactory<>("intitule"));
         columnCapaciteSpecialite.setCellValueFactory(new PropertyValueFactory<>("capacite"));
-        columnNiveauSpecialite.setCellValueFactory(new PropertyValueFactory<>("niveau"));
 
-        tableSpecialite.getItems().addAll(getAllSpecialites());
-        tableSpecialite.getColumns().addAll(columnNiveauSpecialite, columnTitreSpecialite, columnCapaciteSpecialite);
-
-        comboNiveauSpecialite.getItems().addAll(
-                "L1",
-                "L2",
-                "L3"
-        );
+        tableSpecialite.setItems(allSpecialites);
+        tableSpecialite.getColumns().addAll(columnTitreSpecialite, columnCapaciteSpecialite);
 
 
         /***----------------------------------------------------------------------------------------------------**/
@@ -397,15 +391,11 @@ public class GroupeController implements Initializable {
         columnNiveauGroupe.setCellValueFactory(new PropertyValueFactory<>("niveau"));
 
 
-        tableGroupe.getItems().addAll(getAllGroupes());
+        tableGroupe.getItems().addAll(allGroupes);
         tableGroupe.getColumns().addAll(columnNiveauGroupe, columnTitreGroupe, columnCapaciteGroupe);
 
 
-        comboNiveauGroupe.getItems().addAll(
-                "L1",
-                "L2",
-                "L3"
-        );
+        comboNiveauGroupe.getItems().addAll(Data.getAllNiveaux());
 
     }
 }
