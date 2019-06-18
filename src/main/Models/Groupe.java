@@ -3,15 +3,24 @@ package main.Models;
 public class Groupe {
 
     private String intitule;
-    private int capacite, idSection;
+    private int id, capacite, idSection;
 
     public Groupe() {
     }
 
-    public Groupe(String intitule, int capacite, int idSection) {
+    public Groupe(String intitule, int id, int capacite, int idSection) {
         this.intitule = intitule;
+        this.id = id;
         this.capacite = capacite;
         this.idSection = idSection;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getIntitule() {

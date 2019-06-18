@@ -128,4 +128,42 @@ public class SectionDao {
 
         return response;
     }
+
+    public ObservableList<Section> getSectionsBySpecialite(int idSpecialite){
+        Section section = new Section();
+
+        int id, capacite;
+        String intitule, niveau;
+        ObservableList<Section> allSections = FXCollections.observableArrayList();
+
+        String query = "SELECT * FROM "+ TABLE_NAME +" WHERE id_specialite =" + idSpecialite;
+
+        connection = DatabaseHelper.getInstance().getConnection();
+
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()){
+                id = rs.getInt(COLUMN_ID);
+                intitule = rs.getString(COLUMN_INTITULE);
+                niveau = rs.getString(COLUMN_NIVEAU);
+                capacite = rs.getInt(COLUMN_CAPACITE);
+
+                section.setId(id);
+                section.setIntitule(intitule);
+                section.setNiveau(niveau);
+                section.setCapacite(capacite);
+                section.setIdSpecialite(idSpecialite);
+
+                allSections.add(section);
+
+            }
+            statement.close();
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return allSections;
+    }
 }
