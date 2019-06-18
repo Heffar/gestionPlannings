@@ -18,10 +18,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import main.Models.Enseignant;
 import main.Models.Module;
+import main.database.DAOs.EnseignantDao;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -40,6 +40,8 @@ public class EnseignantController implements Initializable {
 
     private ObservableList<Enseignant> allEnseignants = FXCollections.observableArrayList();
 
+    private EnseignantDao enseignantDao;
+
 
     public void addEnseignantBtnClicked(){
         Enseignant enseignant = new Enseignant();
@@ -48,44 +50,37 @@ public class EnseignantController implements Initializable {
         enseignant.setPrenom(txtPrenom.getText());
         enseignant.setGrade(txtGrade.getText());
 
-        tableView.getItems().add(enseignant);
-
-        //Ajouter à la base de données ultérieurement
-        //addEnseignant(enseignant);
+        if (enseignantDao.addEnseignantDb(enseignant) > 0)
+            allEnseignants.add(enseignant);
     }
 
     public void deleteEnseignantBtnClicked(){
-        ObservableList<Enseignant> enseignantsSelected, enseignants;
+        ObservableList<Enseignant> enseignantsSelected;
         enseignantsSelected = tableView.getSelectionModel().getSelectedItems();
 
-        enseignants = tableView.getItems();
-
-        enseignantsSelected.forEach(enseignants::remove);
+        enseignantsSelected.forEach(enseignant -> {
+            if (enseignantDao.deleteEnseignantDb(enseignant.getId()) >0 ){
+                allEnseignants.remove(enseignant);
+            }
+        });
     }
 
     public void updateEnseignantBtnClicked(){
         int position;
-        ObservableList<Enseignant> allLocals;
         Enseignant updateEnseignant = new Enseignant();
-        allLocals = tableView.getItems();
         position = tableView.getSelectionModel().getSelectedIndex();
-
+        int oldId = allEnseignants.get(position).getId();
         updateEnseignant.setNom(txtNom.getText());
         updateEnseignant.setPrenom(txtPrenom.getText());
         updateEnseignant.setGrade(txtGrade.getText());
 
-        allLocals.set(position, updateEnseignant);
+        if (enseignantDao.updateEnseignantDb(oldId, updateEnseignant) > 0)
+            allEnseignants.set(position, updateEnseignant);
     }
 
 
     private ObservableList<Enseignant> getAllEnseignants(){
-        ObservableList<Enseignant> enseignants = FXCollections.observableArrayList();;
-
-        //Récupérer les enseignants
-        enseignants.add(new Enseignant("SALIMI", "Salim", "Professeur", new ArrayList<>()));
-        enseignants.add(new Enseignant("OMARI","Ramzi","Chercheur", new ArrayList<>()));
-        enseignants.add(new Enseignant("LOAZAZZA", "OZAZALSSA", "hey", new ArrayList<>()));
-
+        ObservableList<Enseignant> enseignants = enseignantDao.getAllEnseignantsDb();
 
         return enseignants;
     }
@@ -160,11 +155,14 @@ public class EnseignantController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+        enseignantDao = new EnseignantDao();
+        allEnseignants = getAllEnseignants();
         columnNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
         columnPrenom.setCellValueFactory(new PropertyValueFactory<>("prenom"));
         columnGrade.setCellValueFactory(new PropertyValueFactory<>("grade"));
 
-        tableView.setItems(getAllEnseignants());
+        tableView.setItems(allEnseignants);
         tableView.getColumns().addAll(columnNom, columnPrenom, columnGrade, columnEnseignement);
 
         searchEnseignants();

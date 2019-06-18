@@ -419,7 +419,7 @@ public class GroupeController implements Initializable {
         columnTitreGroupe.setCellValueFactory(new PropertyValueFactory<>("intitule"));
         columnCapaciteGroupe.setCellValueFactory(new PropertyValueFactory<>("capacite"));
 
-        allGroupes = groupeDao.getAllGroupes();
+        allGroupes = getAllGroupes();
         tableGroupe.setItems(allGroupes);
         tableGroupe.getColumns().addAll(columnNiveauGroupe, columnTitreGroupe, columnCapaciteGroupe);
 

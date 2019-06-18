@@ -1,19 +1,25 @@
 package main.Models;
 
-import java.util.List;
-
 public class Enseignant {
+    private int id;
     private String nom, prenom, grade;
-    private List<Module> listEnseignement;
 
     public Enseignant() {
     }
 
-    public Enseignant(String nom, String prenom, String grade, List<Module> listEnseignement) {
+    public Enseignant(int id, String nom, String prenom, String grade) {
+        this.id = id;
         this.nom = nom;
         this.prenom = prenom;
         this.grade = grade;
-        this.listEnseignement = listEnseignement;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNom() {
@@ -40,11 +46,4 @@ public class Enseignant {
         this.grade = grade;
     }
 
-    public List<Module> getListEnseignement() {
-        return listEnseignement;
-    }
-
-    public void setListEnseignement(List<Module> listEnseignement) {
-        this.listEnseignement = listEnseignement;
-    }
 }
